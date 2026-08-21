@@ -74,3 +74,9 @@ def get_logged_in_user(token:str=Depends(Oauth_scheme),db:Session=Depends(get_db
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+
+def require_admin(current_user:database_model.User_data=Depends(get_logged_in_user)):
+    """this function check if the logged-in user is admin or not"""
+    if not current_user.role == "admin":
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    return current_user
