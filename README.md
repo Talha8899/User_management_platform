@@ -482,13 +482,13 @@ Once running:
 - Token expiry is enforced
 - Keep `SECRET_KEY` private and rotate if compromised
 - Prefer HTTPS in production deployments
+- Role-based authorization(RBAC)
 
 ---
 
 ## Roadmap / Improvements
 
 - Pagination + filtering for `/users`
-- Role-based authorization
 - Better validation/error schemas
 - Unit/integration tests
 - Docker + docker-compose
