@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 #database url 
-db_url=settings.Database_url
+db_url=settings.database_url
 #create connection by the help of the url
 engine=create_engine(db_url)
 #create session for work 

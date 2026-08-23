@@ -16,3 +16,4 @@ class User_data(Base):
     email :Mapped[str]= mapped_column(String,unique=True,nullable=False)
     password_hash :Mapped[str]= mapped_column(String,nullable=False)
     role:Mapped[str] = mapped_column(String, nullable=False, server_default="user", default="user")
+    
