@@ -25,6 +25,8 @@ Professional RESTful User Management API built with **FastAPI**, **SQLAlchemy**,
   - [Option A: SQLite (Quick Start)](#option-a-sqlite-quick-start)
   - [Option B: PostgreSQL (Production-Friendly)](#option-b-postgresql-production-friendly)
 - [Installation & Run](#installation--run)
+- [Database Migrations (Alembic)](#database-migrations-alembic)
+- [Running Tests](#running-tests)
 - [Authentication](#authentication)
 - [API Endpoints](#api-endpoints)
   - [1) Health Check](#1-health-check)
@@ -33,8 +35,9 @@ Professional RESTful User Management API built with **FastAPI**, **SQLAlchemy**,
   - [4) Get Current User](#4-get-current-user)
   - [5) List Users](#5-list-users)
   - [6) Get User by ID](#6-get-user-by-id)
-  - [7) Update User by ID](#7-update-user-by-id)
-  - [8) Delete User by ID](#8-delete-user-by-id)
+  - [7) Update Profile (Name / Address / Email)](#7-update-profile-name--address--email)
+  - [8) Update Credentials (Email / Password)](#8-update-credentials-email--password)
+  - [9) Delete User by ID](#9-delete-user-by-id)
 - [API Docs](#api-docs)
 - [Security Notes](#security-notes)
 - [Roadmap / Improvements](#roadmap--improvements)
@@ -50,7 +53,7 @@ This API provides secure user management with:
 - credential-based login
 - JWT bearer authentication
 - authenticated profile access
-- full user CRUD operations
+- role-based user CRUD (self-service updates, admin-only deletion)
 
 ---
 
@@ -78,8 +81,8 @@ This API provides secure user management with:
 - **Password Hashing:** Argon2 (`pwdlib`)  
 - **Config:** Pydantic Settings  
 - **Database:** SQLite / PostgreSQL (via SQLAlchemy URL)
-- Migrations: Alembic
-- Testing: Pytest + FastAPI TestClient
+- **Migrations:** Alembic
+- **Testing:** Pytest + FastAPI `TestClient
 
 ---
 
@@ -172,40 +175,21 @@ No separate database server required.
 
 ---
 
-## Installation & Run
-
+## Database Migrations (Alembic)
+ 
+Run these from `Backend/App/` (where `alembic.ini` lives):
+ 
 ```bash
-# 1) Clone
-git clone https://github.com/Talha8899/user-managment-api-.git
-cd user-managment-api-
-
-# 2) (Recommended) create virtual environment
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-
-# macOS/Linux
-source .venv/bin/activate
-
-# 3) Install dependencies
-pip install -r requirements.txt
+# apply all migrations
+alembic upgrade head
+ 
+# after changing database_model.py, generate a new migration
+alembic revision --autogenerate -m "describe change"
 ```
-
-Start server (from directory containing `main.py`):
-
-```bash
-uvicorn main:app --reload
-```
-
-If `main.py` is nested, run with module path, for example:
-
-```bash
-uvicorn Backend.App.main:app --reload
-```
-
+ 
+An initial schema migration is already included under `alembic/versions/`.
+ 
 ---
-
 ##Database Migrations (Alembic)
 
 ```
@@ -225,28 +209,19 @@ An initial schema migration is already included under alembic/versions/.
 ```
 
 ---
-##Running Tests
 
-```
-
----
-Tests use pytest + FastAPI's TestClient, and run against a live PostgreSQL database (not SQLite) — tests/conftest.py points at postgresql://postgres:your_password@localhost:5432/testdb by default.
-
-bash
-create a Postgres database named "testdb" first, matching conftest.py, then:
+## Running Tests
+ 
+Tests use `pytest` + FastAPI's `TestClient`, and run against a **live PostgreSQL** database (not SQLite) — `tests/conftest.py` points at `postgresql://postgres:your_password@localhost:5432/testdb` by default.
+ 
+```bash
+# create a Postgres database named "testdb" first, matching conftest.py, then:
 cd Backend/App
 pytest
-
-Current coverage: signup validation errors, successful signup, duplicate-email signup, and login (success + invalid credentials).
-
-## Authentication
-
-After login, include JWT token in header:
-
-```http
-Authorization: Bearer <access_token>
 ```
-
+ 
+Current coverage: signup validation errors, successful signup, duplicate-email signup, and login (success + invalid credentials).
+ 
 ---
 
 ## API Endpoints
@@ -532,13 +507,12 @@ Once running:
 
 ## Security Notes
 
-- Passwords are hashed (never stored as plain text)
-- JWTs are signed and validated on protected routes
-- Token expiry is enforced
+- Passwords are hashed with Argon2 (never stored as plain text)
+- JWTs are signed and validated on protected routes; the token's `sub` claim is the user's `emp_id`
+- Token expiry is enforced (30 minutes by default, configurable via `ACCESS_TOKEN_EXPIRE_TIME`)
 - Keep `SECRET_KEY` private and rotate if compromised
 - Prefer HTTPS in production deployments
-- Role-based authorization(RBAC)
-
+- Role-based authorization (RBAC): self-service profile/credential edits, admin-only deletion
 ---
 
 ## Roadmap / Improvements
@@ -547,7 +521,6 @@ Once running:
 - Better validation/error schemas
 - Docker + docker-compose
 - CI pipeline (lint, test, security checks)
-
 ---
 
 ## License
