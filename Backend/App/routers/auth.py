@@ -1,6 +1,6 @@
 import database_model as database_model
 from Schemas import User_Add
-from fastapi import HTTPException,Depends,APIRouter
+from fastapi import HTTPException,Depends,APIRouter,status
 from sqlalchemy.orm import Session
 from database_dependencies import get_db
 from database_model import User_data
@@ -10,7 +10,7 @@ from auth_dependencies import access_token, hash_password,verify_password
 router=APIRouter(tags=["authentication"])
 
 #route for  new user signup
-@router.post("/users/signup")
+@router.post("/users/signup" ,status_code=status.HTTP_201_CREATED)
 def add_user(user:User_Add,db:Session=Depends(get_db)):
     """checking if user already exist or not"""
     db_user=db.query(database_model.User_data).filter(database_model.User_data.email==user.email).first()
@@ -23,7 +23,7 @@ def add_user(user:User_Add,db:Session=Depends(get_db)):
                 password_hash=hashed_password)#mapping the hashed password to the database model
     db.add(new_user)
     db.commit()
-    return {"message":"user signed up successfully", "status_code": 201}
+    return {"message":"user signed up successfully"}
 
 #route for  existing user login
 @router.post("/users/login")
