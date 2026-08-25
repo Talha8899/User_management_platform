@@ -61,7 +61,10 @@ This API provides secure user management with:
 - JWT access token generation and validation
 - OAuth2 Password Flow (`application/x-www-form-urlencoded` login)
 - Protected endpoints with bearer token auth
+- Role-based access: users can edit their own profile/credentials,only admin users can delete accounts
 - SQLAlchemy ORM-based database integration
+- Alembic migrations for schema changes
+- Pytest test suite for signup/login flows
 - Interactive OpenAPI docs (Swagger + ReDoc)
 
 ---
@@ -70,25 +73,44 @@ This API provides secure user management with:
 
 - **Framework:** FastAPI  
 - **Language:** Python 3.10+  
-- **ORM:** SQLAlchemy  
+- **ORM:** SQLAlchemy 2.x 
 - **Auth:** OAuth2 Password Flow + JWT  
 - **Password Hashing:** Argon2 (`pwdlib`)  
 - **Config:** Pydantic Settings  
 - **Database:** SQLite / PostgreSQL (via SQLAlchemy URL)
+- Migrations: Alembic
+- Testing: Pytest + FastAPI TestClient
 
 ---
 
 ## Project Structure
 
 ```text
-Backend/
-└── App/
-    ├── main.py
-    ├── auth_dependencies.py
-    └── routers/
-        ├── auth.py
-        ├── root.py
-        └── users.py
+user-managment-api/
+├── LICENSE
+├── README.md
+└── Backend/
+    ├── requirements.txt
+    └── App/
+        ├── main.py
+        ├── auth_dependencies.py
+        ├── database.py
+        ├── database_dependencies.py
+        ├── database_model.py
+        ├── pydentic_config.py
+        ├── Schemas.py
+        ├── alembic.ini
+        ├── alembic/
+        │   ├── env.py
+        │   ├── script.py.mako
+        │   └── versions/
+        ├── routers/
+        │   ├── auth.py
+        │   ├── root.py
+        │   └── users.py
+        └── tests/
+            ├── conftest.py
+            └── test_users.py
 ```
 
 ---
@@ -183,6 +205,39 @@ uvicorn Backend.App.main:app --reload
 ```
 
 ---
+
+##Database Migrations (Alembic)
+
+```
+
+---
+Run these from Backend/App/ (where alembic.ini lives):
+
+bash
+# apply all migrations
+alembic upgrade head
+
+# after changing database_model.py, generate a new migration
+alembic revision --autogenerate -m "describe change"
+
+An initial schema migration is already included under alembic/versions/.
+
+```
+
+---
+##Running Tests
+
+```
+
+---
+Tests use pytest + FastAPI's TestClient, and run against a live PostgreSQL database (not SQLite) — tests/conftest.py points at postgresql://postgres:your_password@localhost:5432/testdb by default.
+
+bash
+create a Postgres database named "testdb" first, matching conftest.py, then:
+cd Backend/App
+pytest
+
+Current coverage: signup validation errors, successful signup, duplicate-email signup, and login (success + invalid credentials).
 
 ## Authentication
 
@@ -490,10 +545,8 @@ Once running:
 
 - Pagination + filtering for `/users`
 - Better validation/error schemas
-- Unit/integration tests
 - Docker + docker-compose
 - CI pipeline (lint, test, security checks)
-- Alembic migrations and seed scripts
 
 ---
 
