@@ -31,6 +31,16 @@
 </div>
 
 ---
+## Problem
+
+Most web applications need the same core account-management capabilities: user registration, authentication, authorization, profile management, password recovery, session handling, and administrative user management. Implementing these features securely requires careful handling of passwords, tokens, permissions, cookies, database state, and user activity.
+
+## Solution
+
+This project provides a full-stack implementation of those capabilities using a FastAPI backend and Next.js frontend. It demonstrates secure authentication with Argon2 password hashing, short-lived JWT access tokens, rotating refresh tokens, role-based access control, password-reset flows, user activity tracking, database migrations, and an administrative dashboard.
+
+The project is designed as a portfolio-scale example of how a modern authentication and user-management system can be structured, secured, tested, and deployed.
+
 
 ## Table of Contents
 
