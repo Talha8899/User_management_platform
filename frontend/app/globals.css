@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/* Shared color tokens used by the application shell and authentication views. */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  /* Keep the page background and text consistent before Tailwind utilities load. */
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.login-ambient {
+  position: absolute;
+  inset: -15%;
+  background:
+    radial-gradient(
+      ellipse 42% 34% at 8% 18%,
+      rgba(96, 165, 250, 0.3),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 42% 34% at 92% 20%,
+      rgba(56, 189, 248, 0.24),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 48% 38% at 18% 88%,
+      rgba(205, 55, 10, 0.32),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 48% 38% at 84% 82%,
+      rgba(91, 113, 255, 0.26),
+      transparent 70%
+    ),
+    linear-gradient(135deg, #fafaff 25%, #eef7ff 48%, #819098 100%);
+  background-size: 140% 140%;
+  background-position: 0% 0%;
+  filter: blur(7px);
+  opacity: 1;
+  will-change: transform, background-position;
+  animation: login-ambient-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes login-ambient-drift {
+  0%,
+  100% {
+    transform: translate3d(-4%, 2%, 0) scale(1.04);
+    background-position: 0% 0%;
+  }
+  50% {
+    transform: translate3d(4%, -2%, 0) scale(0.98);
+    background-position: 100% 100%;
+  }
+}
+
+.auth-ambient {
+  background:
+    radial-gradient(
+      circle at 8% 14%,
+      rgba(96, 165, 250, 0.22),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 92% 84%,
+      rgba(125, 211, 252, 0.2),
+      transparent 30%
+    ),
+    linear-gradient(135deg, #f7fbff 0%, #eff7ff 52%, #f8fbff 100%);
+  background-size: 120% 120%;
+  animation: auth-ambient-drift 34s ease-in-out infinite alternate;
+}
+
+.admin-ambient {
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(219, 234, 254, 0.52),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 72% 100%,
+      rgba(224, 242, 254, 0.42),
+      transparent 28%
+    );
+  opacity: 0.8;
+  animation: admin-ambient-drift 48s ease-in-out infinite alternate;
+}
+
+@keyframes auth-ambient-drift {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 100%;
+  }
+}
+
+@keyframes admin-ambient-drift {
+  from {
+    transform: translate3d(-1%, 0, 0);
+  }
+  to {
+    transform: translate3d(1%, -1%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-ambient,
+  .auth-ambient,
+  .admin-ambient {
+    animation: none;
+  }
+}
