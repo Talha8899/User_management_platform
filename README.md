@@ -25,6 +25,8 @@ Professional RESTful User Management API built with **FastAPI**, **SQLAlchemy**,
   - [Option A: SQLite (Quick Start)](#option-a-sqlite-quick-start)
   - [Option B: PostgreSQL (Production-Friendly)](#option-b-postgresql-production-friendly)
 - [Installation & Run](#installation--run)
+- [Database Migrations (Alembic)](#database-migrations-alembic)
+- [Running Tests](#running-tests)
 - [Authentication](#authentication)
 - [API Endpoints](#api-endpoints)
   - [1) Health Check](#1-health-check)
@@ -33,8 +35,9 @@ Professional RESTful User Management API built with **FastAPI**, **SQLAlchemy**,
   - [4) Get Current User](#4-get-current-user)
   - [5) List Users](#5-list-users)
   - [6) Get User by ID](#6-get-user-by-id)
-  - [7) Update User by ID](#7-update-user-by-id)
-  - [8) Delete User by ID](#8-delete-user-by-id)
+  - [7) Update Profile (Name / Address / Email)](#7-update-profile-name--address--email)
+  - [8) Update Credentials (Email / Password)](#8-update-credentials-email--password)
+  - [9) Delete User by ID](#9-delete-user-by-id)
 - [API Docs](#api-docs)
 - [Security Notes](#security-notes)
 - [Roadmap / Improvements](#roadmap--improvements)
@@ -50,7 +53,7 @@ This API provides secure user management with:
 - credential-based login
 - JWT bearer authentication
 - authenticated profile access
-- full user CRUD operations
+- role-based user CRUD (self-service updates, admin-only deletion)
 
 ---
 
@@ -61,7 +64,10 @@ This API provides secure user management with:
 - JWT access token generation and validation
 - OAuth2 Password Flow (`application/x-www-form-urlencoded` login)
 - Protected endpoints with bearer token auth
+- Role-based access: users can edit their own profile/credentials,only admin users can delete accounts
 - SQLAlchemy ORM-based database integration
+- Alembic migrations for schema changes
+- Pytest test suite for signup/login flows
 - Interactive OpenAPI docs (Swagger + ReDoc)
 
 ---
@@ -70,25 +76,44 @@ This API provides secure user management with:
 
 - **Framework:** FastAPI  
 - **Language:** Python 3.10+  
-- **ORM:** SQLAlchemy  
+- **ORM:** SQLAlchemy 2.x 
 - **Auth:** OAuth2 Password Flow + JWT  
 - **Password Hashing:** Argon2 (`pwdlib`)  
 - **Config:** Pydantic Settings  
 - **Database:** SQLite / PostgreSQL (via SQLAlchemy URL)
+- **Migrations:** Alembic
+- **Testing:** Pytest + FastAPI `TestClient
 
 ---
 
 ## Project Structure
 
 ```text
-Backend/
-└── App/
-    ├── main.py
-    ├── auth_dependencies.py
-    └── routers/
-        ├── auth.py
-        ├── root.py
-        └── users.py
+user-managment-api/
+├── LICENSE
+├── README.md
+└── Backend/
+    ├── requirements.txt
+    └── App/
+        ├── main.py
+        ├── auth_dependencies.py
+        ├── database.py
+        ├── database_dependencies.py
+        ├── database_model.py
+        ├── pydentic_config.py
+        ├── Schemas.py
+        ├── alembic.ini
+        ├── alembic/
+        │   ├── env.py
+        │   ├── script.py.mako
+        │   └── versions/
+        ├── routers/
+        │   ├── auth.py
+        │   ├── root.py
+        │   └── users.py
+        └── tests/
+            ├── conftest.py
+            └── test_users.py
 ```
 
 ---
@@ -150,48 +175,53 @@ No separate database server required.
 
 ---
 
-## Installation & Run
-
+## Database Migrations (Alembic)
+ 
+Run these from `Backend/App/` (where `alembic.ini` lives):
+ 
 ```bash
-# 1) Clone
-git clone https://github.com/Talha8899/user-managment-api-.git
-cd user-managment-api-
+# apply all migrations
+alembic upgrade head
+ 
+# after changing database_model.py, generate a new migration
+alembic revision --autogenerate -m "describe change"
+```
+ 
+An initial schema migration is already included under `alembic/versions/`.
+ 
+---
+##Database Migrations (Alembic)
 
-# 2) (Recommended) create virtual environment
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-
-# macOS/Linux
-source .venv/bin/activate
-
-# 3) Install dependencies
-pip install -r requirements.txt
 ```
 
-Start server (from directory containing `main.py`):
+---
+Run these from Backend/App/ (where alembic.ini lives):
 
-```bash
-uvicorn main:app --reload
-```
+bash
+# apply all migrations
+alembic upgrade head
 
-If `main.py` is nested, run with module path, for example:
+# after changing database_model.py, generate a new migration
+alembic revision --autogenerate -m "describe change"
 
-```bash
-uvicorn Backend.App.main:app --reload
+An initial schema migration is already included under alembic/versions/.
+
 ```
 
 ---
 
-## Authentication
-
-After login, include JWT token in header:
-
-```http
-Authorization: Bearer <access_token>
+## Running Tests
+ 
+Tests use `pytest` + FastAPI's `TestClient`, and run against a **live PostgreSQL** database (not SQLite) — `tests/conftest.py` points at `postgresql://postgres:your_password@localhost:5432/testdb` by default.
+ 
+```bash
+# create a Postgres database named "testdb" first, matching conftest.py, then:
+cd Backend/App
+pytest
 ```
-
+ 
+Current coverage: signup validation errors, successful signup, duplicate-email signup, and login (success + invalid credentials).
+ 
 ---
 
 ## API Endpoints
@@ -477,24 +507,20 @@ Once running:
 
 ## Security Notes
 
-- Passwords are hashed (never stored as plain text)
-- JWTs are signed and validated on protected routes
-- Token expiry is enforced
+- Passwords are hashed with Argon2 (never stored as plain text)
+- JWTs are signed and validated on protected routes; the token's `sub` claim is the user's `emp_id`
+- Token expiry is enforced (30 minutes by default, configurable via `ACCESS_TOKEN_EXPIRE_TIME`)
 - Keep `SECRET_KEY` private and rotate if compromised
 - Prefer HTTPS in production deployments
-- Role-based authorization(RBAC)
-
+- Role-based authorization (RBAC): self-service profile/credential edits, admin-only deletion
 ---
 
 ## Roadmap / Improvements
 
 - Pagination + filtering for `/users`
 - Better validation/error schemas
-- Unit/integration tests
 - Docker + docker-compose
 - CI pipeline (lint, test, security checks)
-- Alembic migrations and seed scripts
-
 ---
 
 ## License
