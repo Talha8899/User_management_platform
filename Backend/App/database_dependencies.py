@@ -1,15 +1,15 @@
-"""This module contains the database dependencies for the FastAPI application.
-It includes the necessary imports and functions to create the database tables 
-and manage database sessions."""
+"""FastAPI dependency for creating and closing database sessions."""
 
-from database import session,engine
+from database import session, engine
 import database_model as database_model
 
+# Ensure tables exist for the local application startup path.
 database_model.Base.metadata.create_all(bind=engine)
 
-#make database session for work with database
+
+# Yield a request-scoped session and always close it afterward.
 def get_db():
-    db=session()
+    db = session()
     try:
         yield db
     finally:
