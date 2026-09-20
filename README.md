@@ -240,9 +240,6 @@ User_management_platform/
 │   ├── public/                          # Static assets
 │   ├── package.json
 │   └── next.config.ts · tsconfig.json · eslint.config.mjs · postcss.config.mjs
-├── assets/
-│   ├── banner.svg                       # README banner
-│   └── diagrams/                        # Architecture, data model, and route diagrams (SVG)
 ├── .gitignore
 ├── LICENSE
 └── README.md
