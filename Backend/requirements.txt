@@ -1,5 +1,4 @@
 ﻿# Install the runtime dependencies from requirements.txt first.
-requirements.txt
 
 annotated-doc==0.0.4
 annotated-types==0.7.0
