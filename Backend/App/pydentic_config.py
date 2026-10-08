@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     activity_retention_days: int = 15
     password_reset_expire_minutes: int = 15
     frontend_base_url: str
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str 
     refresh_cookie_name: str = "refresh_token"
     refresh_cookie_secure: bool = False
     refresh_cookie_samesite: str = "lax"
